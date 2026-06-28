@@ -1,6 +1,6 @@
 # GulfTalent — UAE Jobs Platform
 
-A full-stack job board platform where Kenyan professionals apply for UAE career opportunities. No account required to apply. Admins control job listings, required documents per career category, and receive/manage applications. Automated emails sent on every application.
+A full-stack job board where Kenyan professionals apply for UAE career opportunities. No account needed to apply. Admin controls job listings, required documents per career category, and all applications. Automated emails fire on every submission and status change.
 
 ---
 
@@ -8,13 +8,13 @@ A full-stack job board platform where Kenyan professionals apply for UAE career 
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18, Bootstrap Icons (CDN), CSS (custom from Constra theme) |
-| Backend | Node.js + Express (single core application) |
-| Database | PostgreSQL (via Prisma ORM) |
-| Email | Nodemailer (SMTP / SendGrid) |
-| File Storage | Multer + local disk (or AWS S3 in production) |
-| SEO | React Helmet Async |
-| Image Handling | Sharp (resize/optimize) + slug-based URLs |
+| Frontend | React 18, Vite, Bootstrap Icons (CDN), Custom CSS |
+| Backend | Django 4.2 + Django REST Framework |
+| Auth | JWT via `djangorestframework-simplejwt` |
+| Database | SQLite (dev) → PostgreSQL (production) |
+| Email | Django SMTP (`EmailMultiAlternatives` + HTML templates) |
+| File Uploads | Django `FileField` + Pillow |
+| Filtering | `django-filter` + DRF SearchFilter |
 
 ---
 
@@ -25,283 +25,176 @@ gulftalent/
 │
 ├── README.md
 │
-├── backend/                          # Single core Node/Express application
-│   ├── package.json
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── server.js                     # Entry point — mounts all routes
-│   │
-│   ├── config/
-│   │   ├── database.js               # Prisma client instance
-│   │   ├── email.js                  # Nodemailer transporter config
-│   │   └── storage.js                # Multer disk/S3 storage config
-│   │
-│   ├── prisma/
-│   │   ├── schema.prisma             # All models: Job, Category, Application, Admin, Document
-│   │   └── migrations/               # Auto-generated Prisma migrations
-│   │
-│   ├── routes/
-│   │   ├── index.js                  # Mounts all route groups
-│   │   ├── jobs.routes.js            # Public job routes
-│   │   ├── categories.routes.js      # Public category routes
-│   │   ├── applications.routes.js    # Public application submit route
-│   │   ├── admin/
-│   │   │   ├── auth.routes.js        # Admin login/logout/refresh
-│   │   │   ├── jobs.routes.js        # Admin CRUD for jobs
-│   │   │   ├── categories.routes.js  # Admin CRUD for categories
-│   │   │   ├── documents.routes.js   # Admin manage required docs per category
-│   │   │   └── applications.routes.js# Admin view/update/export applications
-│   │   └── upload.routes.js          # File upload endpoint
-│   │
-│   ├── controllers/
-│   │   ├── jobs.controller.js
-│   │   ├── categories.controller.js
-│   │   ├── applications.controller.js
-│   │   ├── upload.controller.js
-│   │   └── admin/
-│   │       ├── auth.controller.js
-│   │       ├── jobs.controller.js
-│   │       ├── categories.controller.js
-│   │       ├── documents.controller.js
-│   │       └── applications.controller.js
-│   │
-│   ├── middleware/
-│   │   ├── auth.middleware.js        # JWT verify for admin routes
-│   │   ├── validate.middleware.js    # Joi/Zod request validation
-│   │   ├── upload.middleware.js      # Multer file filter + limits
-│   │   └── errorHandler.middleware.js
-│   │
-│   ├── services/
-│   │   ├── email.service.js          # All email sending logic (templates)
-│   │   ├── slug.service.js           # Generate/validate URL slugs
-│   │   ├── image.service.js          # Sharp resize, webp conversion
-│   │   └── seo.service.js            # Generate meta tags server-side (for SSR/OG)
-│   │
-│   ├── templates/                    # Nodemailer HTML email templates
-│   │   ├── application-received.html # Email to applicant
-│   │   ├── application-admin.html    # Email to admin on new app
-│   │   └── status-update.html        # Email to applicant on status change
-│   │
-│   └── utils/
-│       ├── pagination.js
-│       ├── sanitize.js
-│       └── constants.js
-│
-├── frontend/                         # React 18 SPA
-│   ├── index.html                    # Root HTML — Bootstrap Icons CDN, meta base
-│   ├── package.json
-│   ├── vite.config.js
+├── gulftalent_backend/               # Django project root
+│   ├── manage.py
+│   ├── requirements.txt
 │   ├── .env.example
 │   │
-│   ├── public/
-│   │   ├── favicon.png
-│   │   ├── og-image.jpg              # Default Open Graph image
-│   │   └── robots.txt
+│   ├── gulftalent_backend/           # Project config
+│   │   ├── settings.py
+│   │   ├── urls.py                   # Mounts /api/ and /django-admin/
+│   │   ├── api_urls.py               # ALL API endpoints documented + wired
+│   │   └── wsgi.py
 │   │
-│   └── src/
-│       ├── main.jsx                  # ReactDOM.createRoot, BrowserRouter, HelmetProvider
-│       ├── App.jsx                   # Route definitions (React Router v6)
-│       │
-│       ├── styles/
-│       │   └── main.css              # Full Constra CSS + GulfTalent overrides
-│       │
-│       ├── services/
-│       │   └── api.js                # All Axios API calls — every endpoint
-│       │
-│       ├── components/               # Reusable UI components
-│       │   ├── Navbar.jsx
-│       │   ├── Footer.jsx
-│       │   ├── TopBar.jsx
-│       │   ├── JobCard.jsx           # Job listing card with image, slug link, SEO
-│       │   ├── JobFilter.jsx         # Filter by category, location, type
-│       │   ├── ApplicationForm.jsx   # Multi-step form, dynamic doc uploads
-│       │   ├── CategoryCard.jsx
-│       │   ├── HeroSlider.jsx        # Banner carousel (Constra style)
-│       │   ├── FactsCounter.jsx      # Animated counters section
-│       │   ├── CallToAction.jsx
-│       │   ├── TestimonialSlider.jsx
-│       │   ├── NewsletterSignup.jsx
-│       │   ├── SeoHead.jsx           # React Helmet wrapper per page
-│       │   ├── Breadcrumb.jsx
-│       │   ├── Pagination.jsx
-│       │   ├── Spinner.jsx
-│       │   ├── Alert.jsx
-│       │   └── admin/
-│       │       ├── AdminSidebar.jsx
-│       │       ├── AdminTopbar.jsx
-│       │       ├── DataTable.jsx
-│       │       ├── JobForm.jsx
-│       │       ├── CategoryForm.jsx
-│       │       └── DocumentManager.jsx
-│       │
-│       └── pages/                    # One file per route
-│           ├── Home.jsx              # /
-│           ├── Jobs.jsx              # /jobs
-│           ├── JobDetail.jsx         # /jobs/:slug
-│           ├── Apply.jsx             # /jobs/:slug/apply
-│           ├── ApplicationSuccess.jsx# /apply/success
-│           ├── Categories.jsx        # /categories
-│           ├── CategoryJobs.jsx      # /categories/:slug
-│           ├── About.jsx             # /about
-│           ├── Contact.jsx           # /contact
-│           ├── NotFound.jsx          # *
-│           └── admin/
-│               ├── AdminLogin.jsx    # /admin/login
-│               ├── AdminDashboard.jsx# /admin
-│               ├── AdminJobs.jsx     # /admin/jobs
-│               ├── AdminJobEdit.jsx  # /admin/jobs/new | /admin/jobs/:id/edit
-│               ├── AdminCategories.jsx        # /admin/categories
-│               ├── AdminDocuments.jsx         # /admin/documents
-│               └── AdminApplications.jsx      # /admin/applications
+│   ├── accounts/                     # Custom AdminUser model + JWT auth
+│   │   ├── models.py                 # AdminUser (email-based, no username)
+│   │   ├── serializers.py
+│   │   ├── views.py                  # Login, Logout, Me
+│   │   └── admin.py
+│   │
+│   ├── categories/                   # Job categories + required documents config
+│   │   ├── models.py                 # Category, RequiredDocument
+│   │   ├── serializers.py
+│   │   ├── views.py                  # Public + Admin views
+│   │   └── admin.py
+│   │
+│   ├── jobs/                         # Job listings
+│   │   ├── models.py                 # Job (slug, SEO, emirate, salary, etc.)
+│   │   ├── serializers.py
+│   │   ├── filters.py                # JobFilter (emirate, type, category, salary)
+│   │   ├── views.py                  # Public list/detail + Admin CRUD + toggles
+│   │   ├── dashboard_views.py        # Admin stats endpoint
+│   │   └── admin.py
+│   │
+│   ├── applications/                 # Job applications (no account required)
+│   │   ├── models.py                 # Application, UploadedDocument
+│   │   ├── serializers.py
+│   │   ├── filters.py
+│   │   ├── views.py                  # Submit + Admin list/detail/status/export
+│   │   ├── document_views.py         # Admin manage required docs
+│   │   └── admin.py
+│   │
+│   └── core/
+│       ├── email_service.py          # All email sending (received, notify admin, status update)
+│       ├── utils/
+│       │   └── pagination.py         # Standard paginator with meta
+│       └── email_templates/
+│           ├── application_received.html     # → Applicant on submit
+│           ├── application_admin_notify.html  # → Admin on new app
+│           └── status_update.html             # → Applicant on status change
 │
-└── docs/
-    ├── api.md                        # Full API reference
-    ├── email-flow.md                 # Email trigger map
-    └── deployment.md                 # VPS / Docker deployment guide
+└── frontend/                         # React 18 SPA (next phase)
+    ├── index.html
+    ├── src/
+    │   ├── main.jsx
+    │   ├── App.jsx
+    │   ├── services/api.js
+    │   ├── styles/main.css
+    │   ├── components/
+    │   └── pages/
 ```
 
 ---
 
-## Database Models (Prisma Schema Overview)
+## API Endpoints
 
-```
-Admin           — id, email, passwordHash, name, createdAt
-Category        — id, name, slug, description, image, seoTitle, seoDesc, createdAt
-RequiredDocument— id, categoryId, label, fileTypes[], isRequired, order
-Job             — id, title, slug, categoryId, location, emirate, type, salary,
-                  description, requirements, benefits, image, isFeatured,
-                  isActive, seoTitle, seoDesc, seoKeywords, createdAt, expiresAt
-Application     — id, jobId, firstName, lastName, email, phone, nationality,
-                  coverLetter, status, appliedAt, updatedAt
-UploadedDoc     — id, applicationId, documentLabel, filePath, fileType, fileSize
-```
+### Public (no auth)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/jobs/` | List jobs — filter by `emirate`, `job_type`, `category`, `experience_level`, search by title |
+| GET | `/api/jobs/featured/` | Featured jobs (max 6) |
+| GET | `/api/jobs/<slug>/` | Single job detail with full content |
+| GET | `/api/categories/` | All active categories with job counts |
+| GET | `/api/categories/<slug>/` | Category detail + required documents |
+| GET | `/api/categories/<slug>/documents/` | Required documents list for a category |
+| POST | `/api/applications/` | Submit application — multipart/form-data with file uploads |
+
+### Auth
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/login/` | `{email, password}` → `{access, refresh}` |
+| POST | `/api/auth/refresh/` | `{refresh}` → `{access}` |
+| POST | `/api/auth/logout/` | `{refresh}` → blacklist token |
+| GET | `/api/auth/me/` | Current admin info (Bearer required) |
+
+### Admin (Bearer token required)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET/POST | `/api/admin/jobs/` | List all jobs / Create job |
+| GET/PUT/DELETE | `/api/admin/jobs/<id>/` | Job detail / Update / Delete |
+| POST | `/api/admin/jobs/<id>/toggle-featured/` | Toggle featured flag |
+| POST | `/api/admin/jobs/<id>/toggle-active/` | Toggle active flag |
+| GET/POST | `/api/admin/categories/` | List / Create category |
+| GET/PUT/DELETE | `/api/admin/categories/<id>/` | Category detail / Update / Delete |
+| GET/POST | `/api/admin/documents/` | List / Create required document (filter `?category=<id>`) |
+| GET/PUT/DELETE | `/api/admin/documents/<id>/` | Document detail / Update / Delete |
+| GET | `/api/admin/applications/` | List all applications (filter by status, job, category, date) |
+| GET | `/api/admin/applications/<id>/` | Full application + uploaded files |
+| PUT | `/api/admin/applications/<id>/status/` | Update status + admin notes → triggers email |
+| GET | `/api/admin/applications/export/` | CSV download |
+| GET | `/api/admin/dashboard/stats/` | Counts for jobs, categories, applications |
 
 ---
 
-## API Endpoints (all in `services/api.js`)
+## Application File Upload Convention
 
-### Public
+`POST /api/applications/` accepts `multipart/form-data`.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/jobs` | List jobs (paginated, filterable) |
-| GET | `/api/jobs/:slug` | Single job by slug |
-| GET | `/api/jobs/featured` | Featured jobs |
-| GET | `/api/categories` | All categories |
-| GET | `/api/categories/:slug` | Single category + its jobs |
-| GET | `/api/categories/:slug/documents` | Required docs for a category |
-| POST | `/api/applications` | Submit application (multipart) |
-| POST | `/api/upload` | Upload a single document file |
+File fields should be named `doc_<required_document_id>` for known required docs, or `doc_extra_1`, `doc_extra_2` for additional files. For each file field, optionally include `doc_<id>_label` with a display name.
 
-### Admin (JWT protected)
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/admin/auth/login` | Admin login → JWT |
-| POST | `/api/admin/auth/logout` | Invalidate token |
-| GET | `/api/admin/jobs` | List all jobs |
-| POST | `/api/admin/jobs` | Create job |
-| PUT | `/api/admin/jobs/:id` | Update job |
-| DELETE | `/api/admin/jobs/:id` | Delete job |
-| GET | `/api/admin/categories` | List categories |
-| POST | `/api/admin/categories` | Create category |
-| PUT | `/api/admin/categories/:id` | Update category |
-| DELETE | `/api/admin/categories/:id` | Delete category |
-| GET | `/api/admin/documents` | List required docs (by category) |
-| POST | `/api/admin/documents` | Add required doc to category |
-| PUT | `/api/admin/documents/:id` | Update required doc |
-| DELETE | `/api/admin/documents/:id` | Remove required doc |
-| GET | `/api/admin/applications` | List all applications (filter/sort) |
-| GET | `/api/admin/applications/:id` | Single application + uploaded docs |
-| PUT | `/api/admin/applications/:id/status` | Update status (reviewed/shortlisted/rejected) |
-| GET | `/api/admin/applications/export` | CSV export |
-| GET | `/api/admin/dashboard/stats` | Counts: jobs, apps, categories |
+```
+first_name=John
+last_name=Doe
+email=john@example.com
+...
+doc_3=<file: passport.pdf>
+doc_3_label=Passport Copy
+doc_5=<file: cv.pdf>
+doc_5_label=CV / Resume
+```
 
 ---
 
 ## Email Flow
 
-| Trigger | Recipients | Template |
+| Trigger | To | Template |
 |---|---|---|
-| Application submitted | Applicant + Admin | `application-received.html` / `application-admin.html` |
-| Admin updates status | Applicant | `status-update.html` |
+| Application submitted | Applicant | `application_received.html` |
+| Application submitted | Admin | `application_admin_notify.html` |
+| Admin changes status | Applicant | `status_update.html` |
 
----
-
-## Frontend Pages
-
-| Route | Page | Description |
-|---|---|---|
-| `/` | Home | Hero slider, featured jobs, categories, facts, CTA |
-| `/jobs` | Jobs | Searchable/filterable job listings with pagination |
-| `/jobs/:slug` | Job Detail | Full job info, SEO meta, apply CTA |
-| `/jobs/:slug/apply` | Apply | Dynamic form — fields + doc uploads based on category |
-| `/apply/success` | Success | Confirmation page after submission |
-| `/categories` | Categories | All career categories with images |
-| `/categories/:slug` | Category Jobs | Jobs filtered by category |
-| `/about` | About | Company info, mission |
-| `/contact` | Contact | Contact form |
-| `/admin/login` | Admin Login | — |
-| `/admin` | Dashboard | Stats overview |
-| `/admin/jobs` | Manage Jobs | Table with create/edit/delete |
-| `/admin/categories` | Manage Categories | — |
-| `/admin/documents` | Required Docs | Per-category document config |
-| `/admin/applications` | Applications | View, filter, update status, export CSV |
-
----
-
-## Key Features
-
-- **No account required** — applicants fill form and submit directly
-- **Dynamic document requirements** — admin sets which docs are needed per category (CV, passport copy, certificates, etc.)
-- **Automated emails** — applicant receives confirmation; admin notified instantly
-- **SEO** — every job and category has `slug`, `seoTitle`, `seoDescription`, `seoKeywords`, Open Graph tags
-- **Image handling** — uploaded images auto-resized via Sharp, served with content-hash filenames
-- **Admin panel** — full CRUD for jobs, categories, document rules; application inbox with status workflow
-- **UAE Emirates filter** — filter jobs by emirate (Dubai, Abu Dhabi, Sharjah, etc.)
+Set `EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend` in dev to see emails printed to terminal.
 
 ---
 
 ## Getting Started
 
-### Backend
 ```bash
-cd backend
-cp .env.example .env          # fill DB_URL, JWT_SECRET, SMTP_* vars
-npm install
-npx prisma migrate dev
-npm run dev
+cd gulftalent_backend
+pip install -r requirements.txt
+cp .env.example .env          # edit vars as needed
+python manage.py migrate
+python manage.py createsuperuser   # or use the one pre-created below
+python manage.py runserver
 ```
 
-### Frontend
-```bash
-cd frontend
-cp .env.example .env          # set VITE_API_BASE_URL
-npm install
-npm run dev
-```
+**Default admin created during setup:**
+- Email: `admin@gulftalent.co.ke`
+- Password: `Admin@1234!`
+- ⚠️ Change this immediately in production
+
+**Django admin panel:** `http://localhost:8000/django-admin/`
+**API base:** `http://localhost:8000/api/`
 
 ---
 
-## Environment Variables
+## Models Overview
 
-### Backend `.env`
 ```
-DATABASE_URL=postgresql://user:pass@localhost:5432/gulftalent
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRES_IN=7d
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USER=apikey
-SMTP_PASS=your_sendgrid_key
-EMAIL_FROM=noreply@gulftalent.co.ke
-ADMIN_EMAIL=admin@gulftalent.co.ke
-UPLOAD_DIR=uploads/
-MAX_FILE_SIZE_MB=5
-PORT=5000
-```
-
-### Frontend `.env`
-```
-VITE_API_BASE_URL=http://localhost:5000/api
+AdminUser         — email, full_name, is_staff, is_superuser
+Category          — name, slug, description, image, icon, seo_*, is_active, order
+RequiredDocument  — category FK, label, description, accepted_file_types, is_required, order
+Job               — title, slug, category FK, emirate, job_type, experience_level,
+                    salary_min, salary_max, salary_display, description, requirements,
+                    responsibilities, benefits, image, is_featured, is_active, is_urgent,
+                    seo_title, seo_description, seo_keywords, expires_at
+Application       — job FK, first_name, last_name, email, phone, nationality,
+                    date_of_birth, gender, current_location, cover_letter,
+                    years_of_experience, highest_education, linkedin_url,
+                    status, admin_notes, ip_address
+UploadedDocument  — application FK, required_document FK, label, file, file_name,
+                    file_size, file_type
 ```
