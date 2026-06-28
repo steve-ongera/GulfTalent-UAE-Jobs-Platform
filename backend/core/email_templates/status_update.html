@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Application Update</title></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:'Open Sans',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:4px;overflow:hidden;">
+        <tr><td style="background:#23282d;padding:30px 40px;text-align:center;">
+          <h1 style="color:#ffb600;font-size:28px;margin:0;text-transform:uppercase;letter-spacing:2px;">Gulf<span style="color:#fff;">Talent</span></h1>
+        </td></tr>
+        <tr><td style="background:#ffb600;height:4px;"></td></tr>
+        <tr><td style="padding:40px;">
+          <p style="color:#555;font-size:15px;line-height:26px;">Dear <strong>{{ applicant_name }}</strong>,</p>
+          <p style="color:#555;font-size:15px;line-height:26px;">{{ status_message }}</p>
+          <table width="100%" style="background:#f9f9f9;border-left:4px solid #ffb600;margin:25px 0;">
+            <tr><td style="padding:20px 25px;">
+              <p style="margin:0 0 5px;color:#212121;font-size:16px;font-weight:700;">{{ job_title }}</p>
+              <p style="margin:0;color:#777;font-size:13px;">Status: <strong style="color:#ffb600;">{{ status }}</strong></p>
+              <p style="margin:5px 0 0;color:#999;font-size:12px;">Ref #{{ application_id }}</p>
+            </td></tr>
+          </table>
+          {% if admin_notes %}<p style="color:#555;font-size:14px;"><strong>Notes from our team:</strong></p><p style="color:#555;font-size:14px;background:#f9f9f9;padding:15px;">{{ admin_notes }}</p>{% endif %}
+          <p style="color:#777;font-size:13px;">Questions? <a href="mailto:admin@gulftalent.co.ke" style="color:#ffb600;">admin@gulftalent.co.ke</a></p>
+        </td></tr>
+        <tr><td style="background:#23282d;padding:20px 40px;text-align:center;"><p style="color:#777;font-size:12px;margin:0;">© GulfTalent — UAE Career Opportunities</p></td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
