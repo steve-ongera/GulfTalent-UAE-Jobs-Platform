@@ -1,122 +1,63 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
+import { AuthProvider } from './context/AuthContext'
 
-function App() {
-  const [count, setCount] = useState(0)
+// Public pages
+import Home from './pages/Home'
+import Jobs from './pages/Jobs'
+import JobDetail from './pages/JobDetail'
+import Apply from './pages/Apply'
+import ApplicationSuccess from './pages/ApplicationSuccess'
+import Categories from './pages/Categories'
+import CategoryJobs from './pages/CategoryJobs'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import NotFound from './pages/NotFound'
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+// Admin pages
+import AdminLogin from './pages/admin/AdminLogin'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminJobs from './pages/admin/AdminJobs'
+import AdminJobEdit from './pages/admin/AdminJobEdit'
+import AdminCategories from './pages/admin/AdminCategories'
+import AdminDocuments from './pages/admin/AdminDocuments'
+import AdminApplications from './pages/admin/AdminApplications'
+import AdminApplicationDetail from './pages/admin/AdminApplicationDetail'
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+function ProtectedRoute({ children }) {
+  const { admin, loading } = useAuth()
+  if (loading) return <div className="page-loading"><div className="spinner"></div></div>
+  return admin ? children : <Navigate to="/admin/login" replace />
 }
 
-export default App
+export default function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        {/* ── Public ── */}
+        <Route path="/" element={<Home />} />
+        <Route path="/jobs" element={<Jobs />} />
+        <Route path="/jobs/:slug" element={<JobDetail />} />
+        <Route path="/jobs/:slug/apply" element={<Apply />} />
+        <Route path="/apply/success" element={<ApplicationSuccess />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/categories/:slug" element={<CategoryJobs />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+
+        {/* ── Admin ── */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/jobs" element={<ProtectedRoute><AdminJobs /></ProtectedRoute>} />
+        <Route path="/admin/jobs/new" element={<ProtectedRoute><AdminJobEdit /></ProtectedRoute>} />
+        <Route path="/admin/jobs/:id/edit" element={<ProtectedRoute><AdminJobEdit /></ProtectedRoute>} />
+        <Route path="/admin/categories" element={<ProtectedRoute><AdminCategories /></ProtectedRoute>} />
+        <Route path="/admin/documents" element={<ProtectedRoute><AdminDocuments /></ProtectedRoute>} />
+        <Route path="/admin/applications" element={<ProtectedRoute><AdminApplications /></ProtectedRoute>} />
+        <Route path="/admin/applications/:id" element={<ProtectedRoute><AdminApplicationDetail /></ProtectedRoute>} />
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AuthProvider>
+  )
+}
