@@ -16,16 +16,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third-party
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_filters',
     'django_cleanup.apps.CleanupConfig',
-    'accounts',
-    'categories',
-    'jobs',
-    'applications',
+    # Single app
+    'core',
 ]
 
 MIDDLEWARE = [
@@ -39,7 +38,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'gulftalent_backend.urls'
+ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
     {
@@ -57,7 +56,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'gulftalent_backend.wsgi.application'
+WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -65,7 +64,7 @@ DATABASES = {
     )
 }
 
-AUTH_USER_MODEL = 'accounts.AdminUser'
+AUTH_USER_MODEL = 'core.AdminUser'
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -86,11 +85,9 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'core.utils.pagination.StandardPagination',
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.StandardPagination',
     'PAGE_SIZE': 12,
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-    ],
+    'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
 }
 
 SIMPLE_JWT = {
@@ -119,7 +116,6 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Africa/Nairobi'
 USE_I18N = True
 USE_TZ = True
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
@@ -131,13 +127,6 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='GulfTalent <noreply@gulftalent.co.ke>')
 ADMIN_NOTIFICATION_EMAIL = config('ADMIN_NOTIFICATION_EMAIL', default='admin@gulftalent.co.ke')
 
-MAX_UPLOAD_SIZE_MB = config('MAX_UPLOAD_SIZE_MB', default=5, cast=int)
-MAX_UPLOAD_SIZE = MAX_UPLOAD_SIZE_MB * 1024 * 1024
-ALLOWED_DOCUMENT_TYPES = [
-    'application/pdf', 'image/jpeg', 'image/png',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-]
-
+MAX_UPLOAD_SIZE = config('MAX_UPLOAD_SIZE_MB', default=5, cast=int) * 1024 * 1024
 SITE_NAME = 'GulfTalent'
 SITE_URL = config('SITE_URL', default='http://localhost:5173')
