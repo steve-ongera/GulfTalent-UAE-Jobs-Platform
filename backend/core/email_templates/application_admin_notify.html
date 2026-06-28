@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>New Application</title></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:4px;overflow:hidden;">
+        <tr><td style="background:#23282d;padding:25px 40px;">
+          <h1 style="color:#ffb600;margin:0;font-size:22px;">GulfTalent — New Application #{{ application_id }}</h1>
+        </td></tr>
+        <tr><td style="background:#ffb600;height:4px;"></td></tr>
+        <tr><td style="padding:30px 40px;">
+          <table width="100%" style="border-collapse:collapse;margin-bottom:25px;">
+            <tr style="background:#f9f9f9;"><td style="padding:10px 15px;font-size:13px;color:#777;width:35%;font-weight:bold;">Applicant</td><td style="padding:10px 15px;font-size:14px;color:#212121;">{{ applicant_name }}</td></tr>
+            <tr><td style="padding:10px 15px;font-size:13px;color:#777;font-weight:bold;">Email</td><td style="padding:10px 15px;font-size:14px;"><a href="mailto:{{ applicant_email }}" style="color:#ffb600;">{{ applicant_email }}</a></td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:10px 15px;font-size:13px;color:#777;font-weight:bold;">Phone</td><td style="padding:10px 15px;font-size:14px;">{{ applicant_phone }}</td></tr>
+            <tr><td style="padding:10px 15px;font-size:13px;color:#777;font-weight:bold;">Job Applied</td><td style="padding:10px 15px;font-size:14px;font-weight:bold;">{{ job_title }}</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:10px 15px;font-size:13px;color:#777;font-weight:bold;">Emirate</td><td style="padding:10px 15px;font-size:14px;">{{ job_emirate }}</td></tr>
+            <tr><td style="padding:10px 15px;font-size:13px;color:#777;font-weight:bold;">Category</td><td style="padding:10px 15px;font-size:14px;">{{ category }}</td></tr>
+          </table>
+          {% if cover_letter %}<p style="color:#777;font-size:13px;font-weight:bold;margin:0 0 8px;">Cover Letter:</p><p style="color:#555;font-size:14px;line-height:22px;background:#f9f9f9;padding:15px;margin:0 0 25px;">{{ cover_letter }}</p>{% endif %}
+          <a href="{{ admin_url }}" style="display:inline-block;background:#ffb600;color:#111;padding:12px 30px;text-decoration:none;font-weight:bold;border-radius:3px;">View Full Application →</a>
+        </td></tr>
+        <tr><td style="background:#23282d;padding:20px 40px;text-align:center;"><p style="color:#777;font-size:12px;margin:0;">GulfTalent Admin Notification</p></td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
